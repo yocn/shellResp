@@ -20,7 +20,7 @@ clipOut="safdafsasd.mp4"
 ffmpeg -y -i $1 -c copy -to $time $clipOut
 
 echo "截去最后4s的视频 end"
-############################### 把画面上下的皮皮虾logo截掉 ###############################
+############################### 截取视频可用部分 ###############################
 wh=`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 $1`
 echo $wh
 
@@ -35,7 +35,7 @@ whOut="whOut.mp4"
 echo "ffmpeg -y -i $clipOut -vf "crop=$w:$height:0:$top" $whOut"
 ffmpeg -y -i $clipOut -vf "crop=$w:$height:0:$top" $whOut
 
-echo "把画面上下的皮皮虾logo截掉 end"
+echo "截取视频可用部分 end"
 ############################### 生成gif ###############################
 # global filter
 fps=10
