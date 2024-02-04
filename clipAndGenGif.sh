@@ -3,14 +3,15 @@
 forceToTime=0
 option="clip"
 gif_width=480
-quality=5
+quality=10
 accuracy=1
 clipEnd=1
 global_ffmpeg_config=" -hide_banner -loglevel panic "
 endVideo="end.mp4"
 endFlag=1
+startTime="00:00:00"
 
-while getopts ":i:t:q:o:w:elac" optname
+while getopts ":i:t:q:o:w:s:elac" optname
 do
     case "$optname" in
       "i")
@@ -32,6 +33,11 @@ do
         echo "get option -o, value is $OPTARG"
         # clip | delogo | none
         option=$OPTARG 
+        ;;
+      "s")
+        echo "get option -o, value is $OPTARG"
+        # clip | delogo | none
+        startTime="00:00:"$OPTARG 
         ;;
       "w")
         echo "get option -w, value is $OPTARG"
@@ -79,6 +85,7 @@ echo "########width:$width  height:$height##########"
 ####### 截去最后4s的视频 #########
 prefix="clipOut_"$prefix
 clipOut="clipOut_"$videoName
+echo " clipOut: $clipOut"
 if [[ $clipEnd == 1 ]]; then
     duration=`ffprobe -v error -select_streams v:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 $videoName`
     seconds=(${duration//./ })
@@ -100,12 +107,12 @@ if [[ $clipEnd == 1 ]]; then
 
     if [[ $accuracy == 0 ]]; then
         time=$h":"$m":"$s
-        echo "compat: "$time
-        ffmpeg $global_ffmpeg_config -y -i $videoName -c copy -to $time $clipOut
+        echo "compat: "$time" clipOut: $clipOut"
+        ffmpeg $global_ffmpeg_config -y -i $videoName -ss $startTime -c copy -to $time $clipOut
     else  
         time=$h":"$m":"$s"."$millsecond
-        echo "full time -> "$time
-        ffmpeg $global_ffmpeg_config -y -ss 0 -t $time -i $videoName -c:v libx264 -preset superfast -c:a copy $clipOut
+        echo "full time -> "$time" clipOut: $clipOut"
+        ffmpeg $global_ffmpeg_config -y -ss 0 -t $time -i $videoName -ss $startTime -c:v libx264 -preset superfast -c:a copy $clipOut
     fi
 fi
 echo "#######截去最后4s的视频  end ############# "
@@ -148,7 +155,7 @@ echo "w:"$width" h:"$height" option:"$option
 if [[ $option == *"clip"* ]]; then
     whOut="clip_"$clipStart
     prefix="clip_"$prefix
-    top=80
+    top=120
     height=`expr $height - $top - 90`
     echo "ffmpeg -hide_banner -loglevel panic -y -i $clipStart -vf "crop=$width:$height:0:$top" $whOut"
     ffmpeg $global_ffmpeg_config -y -i $clipStart -vf "crop=$width:$height:0:$top" $whOut
@@ -185,7 +192,7 @@ MIN_COLOR=10
 MAX_BAYER_SCALE=5
 MIN_BAYER_SCALE=1
 
-MAX_QUALITY=10
+MAX_QUALITY=20
 MIN_QUALITY=1
 
 let "fps_param=$MIN_FPS + (($MAX_FPS - $MIN_FPS) * $quality / $MAX_QUALITY)"
