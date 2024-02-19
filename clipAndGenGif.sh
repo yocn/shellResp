@@ -48,7 +48,7 @@ do
         ## 添加end.mp4
         echo "get option -e, value is $OPTARG"
         # add end video
-        endFlag=1
+        endFlag=0
         ;;
       "a")
         # 是否精确到毫秒，默认关。比如12.512513s的视频，关闭是12，开启是12.512513
@@ -114,6 +114,9 @@ if [[ $clipEnd == 1 ]]; then
         echo "full time -> "$time" clipOut: $clipOut"
         ffmpeg $global_ffmpeg_config -y -ss 0 -t $time -i $videoName -ss $startTime -c:v libx264 -preset superfast -c:a copy $clipOut
     fi
+else
+    cp $videoName $clipOut
+    echo "only cp"
 fi
 echo "#######截去最后4s的视频  end ############# "
 ######## 加片尾 #######
@@ -155,7 +158,7 @@ echo "w:"$width" h:"$height" option:"$option
 if [[ $option == *"clip"* ]]; then
     whOut="clip_"$clipStart
     prefix="clip_"$prefix
-    top=120
+    top=80
     height=`expr $height - $top - 90`
     echo "ffmpeg -hide_banner -loglevel panic -y -i $clipStart -vf "crop=$width:$height:0:$top" $whOut"
     ffmpeg $global_ffmpeg_config -y -i $clipStart -vf "crop=$width:$height:0:$top" $whOut
@@ -167,7 +170,10 @@ elif [[ $option == *"delogo"* ]]; then
     tmp1="tmp_"$whOut
     # delogo1
     # ffplay -i $clipStart -vf delogo=x=20:y=8:w=150:h=60:show=0
-    # 480x640 -> delogo=x=1:y=5:w=90:h=32:show=0
+    # 224x336: delogo=x=6:y=2:w=42:h=18
+    # 480x640: delogo=x=1:y=5:w=90:h=32
+    # 960x720: delogo=x=10:y=6:w=130:h=50
+    # 720x1280: delogo=x=28:y=10:w=156:h=62
     ffmpeg $global_ffmpeg_config -y -i $clipStart -vf delogo=x=1:y=8:w=190:h=70:show=0 $tmp1
     # delogo2
     # ffplay -i $clipStart -vf delogo=x=$delogo2X:y=$delogo2Y:w=200:h=70:show=0
