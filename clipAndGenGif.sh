@@ -1,12 +1,12 @@
 # https://wizyoung.dogcraft.xyz/video2gif-with-high-quality
 
 forceToTime=0
-option="clip"
+option="none"
 gif_width=480
 quality=10
 accuracy=1
-clipEnd=1
-global_ffmpeg_config=" -hide_banner -loglevel panic "
+clipEnd=0
+global_ffmpeg_config=" -hide_banner -loglevel fatal"
 endVideo="end.mp4"
 endFlag=1
 startTime="00:00:00"
@@ -26,7 +26,7 @@ do
       "q")
         ## 设置生成的gif质量
         echo "get option -q, value is $OPTARG"
-        # 0 - 10
+        # 0 - 20 default 10
         quality=$OPTARG
         ;;
       "o")
@@ -60,8 +60,8 @@ do
         global_ffmpeg_config=""
         ;;
       "c")
-        echo "get option -c, means no clip 4s end"
-        clipEnd=0
+        echo "get option -c, means clip 4s end"
+        clipEnd=1
         ;;
       ":")
         echo "No argument value for option $OPTARG"
@@ -159,27 +159,26 @@ if [[ $option == *"clip"* ]]; then
     whOut="clip_"$clipStart
     prefix="clip_"$prefix
     top=80
-    height=`expr $height - $top - 90`
+    height=`expr $height - $top - 190`
     echo "ffmpeg -hide_banner -loglevel panic -y -i $clipStart -vf "crop=$width:$height:0:$top" $whOut"
     ffmpeg $global_ffmpeg_config -y -i $clipStart -vf "crop=$width:$height:0:$top" $whOut
 elif [[ $option == *"delogo"* ]]; then
     whOut="delogo_"$clipStart
     prefix="delogo_"$prefix
-    delogo2X=`expr $width - 200 - 30`
-    delogo2Y=`expr $height - 70 - 20`
+    logoW=105
+    logoH=40
+    longLogoW=`expr $logoW + 30`
+    longLogoH=`expr $logoH + 10`
+    delogo2X=`expr $width - $longLogoW - 1`
+    delogo2Y=`expr $height - $longLogoH - 1`
     tmp1="tmp_"$whOut
     # delogo1
     # ffplay -i $clipStart -vf delogo=x=20:y=8:w=150:h=60:show=0
-    # 224x336: delogo=x=6:y=2:w=42:h=18
-    # 480x640: delogo=x=1:y=5:w=90:h=32
-    # 960x720: delogo=x=10:y=6:w=130:h=50
-    # 720x1280: delogo=x=28:y=10:w=156:h=62
-    ffmpeg $global_ffmpeg_config -y -i $clipStart -vf delogo=x=1:y=8:w=190:h=70:show=0 $tmp1
+    ffmpeg $global_ffmpeg_config -y -i $clipStart -vf delogo=x=1:y=1:w=$logoW:h=$logoH:show=0 $tmp1
     # delogo2
     # ffplay -i $clipStart -vf delogo=x=$delogo2X:y=$delogo2Y:w=200:h=70:show=0
-    # 480x640 -> 
     echo "$delogo2X::$delogo2Y  "
-    ffmpeg $global_ffmpeg_config -y -i $tmp1 -vf delogo=x=$delogo2X:y=$delogo2Y:w=220:h=80:show=0 $whOut
+    ffmpeg $global_ffmpeg_config -y -i $tmp1 -vf delogo=x=$delogo2X:y=$delogo2Y:w=$longLogoW:h=$longLogoH:show=0 $whOut
     rm $tmp1
 elif [[ $option == *"none"* ]]; then
     whOut="none_"$clipStart
